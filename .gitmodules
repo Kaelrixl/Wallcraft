@@ -1,0 +1,3 @@
+[submodule "RePKG/repkg-ng"]
+	path = RePKG/repkg-ng
+	url = https://github.com/addallno/repkg-ng.git

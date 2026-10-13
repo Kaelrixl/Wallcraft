@@ -1,0 +1,13 @@
+bin/
+Release/
+obj/
+.vs/
+artifacts/
+**/settings.json
+**/window.json
+**/settings.json.tmp
+*.user
+*.pdb
+RePKG/*
+!RePKG/repkg-ng/
+Assets/Monterey Light Mode.ico

@@ -40,9 +40,11 @@
  powershell -ExecutionPolicy Bypass -File scripts/Publish.ps1
 ```
 
-已克隆但未下载子模块时执行 `git submodule update --init --recursive`。可通过 `-Dotnet` 指定 dotnet.exe 路径，通过 `-Version 0.1.2` 指定版本。
+已克隆但未下载子模块时执行 `git submodule update --init --recursive`。可通过 `-Dotnet` 指定 dotnet.exe 路径，通过 `-Version 0.1.6` 指定版本。
 
 脚本从固定版本的 RePKG 源码构建解包工具，再生成目录式自包含程序（根目录放 Wallcraft.exe、repkg-ng、说明及许可文件；app 仅存放 .NET 运行库和主程序必需的托管文件），在 `artifacts` 下输出干净的便携目录、ZIP 和 SHA256 校验文件。首次构建需要联网还原 NuGet 包，不会把日常使用目录中的个人配置打入发布包。
+
+只更新本机 `Release/net10.0-windows` 时，先运行 `scripts/BuildRePkg.ps1 -OutputDirectory <工具输出目录> -Dotnet <dotnet.exe 路径>`，然后构建 Wallcraft 并将 `RePkgRuntimeDirectory` 指向该工具输出目录。ETC2 修正保存在 `patches/repkg-etc2.patch`，构建脚本会将其应用到独立的源码副本，不会修改子模块工作区。
 
 `Assets/Wallcraft.png` 是公开版图标源图；`scripts/NewIcon.ps1` 将其转换为多尺寸 ICO。图标已随源码提供，正常构建无需运行此脚本。
 
@@ -50,8 +52,8 @@
 
 - 导出场景素材不等于渲染完整动画。TEX 内嵌的视频可以提取为原始 MP4，实时粒子、交互和场景特效不会合成为视频。
 - 视频壁纸只有源文件为 MP4 时直接导出，不进行转码。
-- 部分 Android MPKG 的纹理、特效或着色器与桌面版不兼容；恢复后请在 Wallpaper Engine 中检查。
-- 部分 ETC2 纹理可能存在解码色点，导出后请检查图片。
+- MPKG 恢复时会把 Android TEX 纹理转成桌面 RGBA8888；场景特效、着色器仍可能与桌面版不兼容，恢复后请在 Wallpaper Engine 中检查。
+- 构建时会对 RePKG 应用项目内的 ETC2 解码修正补丁，再转换 Android 纹理。
 
 ## 许可证
 

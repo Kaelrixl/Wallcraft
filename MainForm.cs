@@ -105,8 +105,7 @@ public sealed class MainForm : Form
                    "已安装：单个壁纸导出媒体，默认保存到系统下载文件夹。\r\n" +
                    "PKG / MPKG：多选或拖入包文件，恢复到 Wallpaper Engine 的 myprojects；也可批量导出已订阅媒体。\r\n\r\n" +
                    "场景壁纸可导出纹理 PNG；视频壁纸直接复制原始 MP4。场景特效不会录制成 MP4。\r\n" +
-                   "部分 Android MPKG 纹理可能无法在桌面版正确显示；提取后请在 Wallpaper Engine 中检查。\r\n" +
-                   "repkg-ng 的 ETC2 解码在部分壁纸上可能产生彩色杂点，请目视检查导出的 PNG。"
+                   "部分 Android MPKG 场景特效可能无法在桌面版正确显示；恢复后请在 Wallpaper Engine 中检查。"
         };
         settings.Controls.Add(info);
         // 首次显示前确定位置，避免在 Load 阶段从默认屏幕移动到保存的屏幕。
@@ -892,13 +891,16 @@ public sealed class MainForm : Form
                 try
                 {
                     await RunToolAsync("extract", file, "-o", staging, "--no-tex-convert");
+                    if (Path.GetExtension(file).Equals(".mpkg", StringComparison.OrdinalIgnoreCase))
+                        await ConvertMobileTexturesAsync(staging);
                     PrepareProject(file, staging, name);
                     Directory.Move(staging, destination);
                     Log($"已恢复：{destination}\r\n");
                     if (Path.GetExtension(file).Equals(".mpkg", StringComparison.OrdinalIgnoreCase))
-                        Log("注意：Android MPKG 的纹理未转码，桌面版可能无法显示，请在 Wallpaper Engine 中检查。\r\n");
+                        Log("Android 纹理已转换为桌面 RGBA8888；场景特效仍需在 Wallpaper Engine 中检查。\r\n");
                     completed++;
-                    SetFileStatus(file, "已完成");
+                    SetFileStatus(file, Path.GetExtension(file).Equals(".mpkg", StringComparison.OrdinalIgnoreCase)
+                        ? "已恢复，需检查兼容性" : "已完成");
                 }
                 catch (Exception error) { SetFileStatus(file, "恢复失败", error.Message); Log($"恢复失败：{file}\r\n{error.Message}\r\n"); }
                 finally { if (Directory.Exists(staging)) Directory.Delete(staging, true); }
@@ -911,6 +913,31 @@ public sealed class MainForm : Form
             _status.Text = "恢复失败";
         }
         finally { _busy = false; _extract.Enabled = _bulkMedia.Enabled = true; }
+    }
+
+    private async Task ConvertMobileTexturesAsync(string staging)
+    {
+        var textures = Directory.EnumerateFiles(staging, "*.tex", SearchOption.AllDirectories).ToArray();
+        foreach (var source in textures)
+        {
+            var work = Path.Combine(staging, $".wallcraft-texture-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(work);
+            try
+            {
+                var copy = Path.Combine(work, Path.GetFileName(source));
+                File.Copy(source, copy);
+                await RunToolAsync("extract", copy, "-M", "-o", work, "--no-keep-tex");
+                var png = Path.ChangeExtension(copy, ".png");
+                if (!File.Exists(png))
+                    throw new InvalidDataException($"Android 纹理未能转换为 PNG：{Path.GetRelativePath(staging, source)}");
+                var desktop = Path.Combine(work, "desktop.tex");
+                await RunToolAsync("repack", png, "-o", desktop, "-f", "RGBA8888");
+                if (!File.Exists(desktop) || new FileInfo(desktop).Length < 100)
+                    throw new InvalidDataException($"桌面纹理生成失败：{Path.GetRelativePath(staging, source)}");
+                File.Move(desktop, source, true);
+            }
+            finally { Directory.Delete(work, true); }
+        }
     }
 
     private static string GetProjectFolderName(string package)

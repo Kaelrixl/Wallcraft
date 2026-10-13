@@ -1,5 +1,5 @@
-﻿param(
-    [string]$Version = '0.1.3',
+param(
+    [string]$Version = '0.1.6',
     [string]$Dotnet = 'dotnet'
 )
 $ErrorActionPreference = 'Stop'
@@ -9,11 +9,7 @@ $run = Join-Path $root ('artifacts\build-' + [guid]::NewGuid().ToString('N'))
 $tool = Join-Path $run 'repkg'
 $package = Join-Path $run "Wallcraft-$Version-win-x64"
 $app = Join-Path $package 'app'
-$toolProject = Join-Path $root 'RePKG\repkg-ng\RePKG\RePKG.csproj'
-if (-not (Test-Path $toolProject)) { throw '请先执行 git submodule update --init --recursive' }
-& $Dotnet publish $toolProject -c Release -f net8.0 -r win-x64 --self-contained true -o $tool
-if ($LASTEXITCODE -ne 0) { throw '解包工具发布失败' }
-Move-Item -LiteralPath (Join-Path $tool 'RePKG.exe') -Destination (Join-Path $tool 'repkg-win-x64.exe')
+& (Join-Path $PSScriptRoot 'BuildRePkg.ps1') -OutputDirectory $tool -Dotnet $Dotnet
 $iconPath = Join-Path $root 'Assets\Wallcraft.ico'
 & $Dotnet publish (Join-Path $root 'Wallcraft.csproj') -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false "-p:BaseIntermediateOutputPath=$run\obj\" "-p:Version=$Version" "-p:RePkgRuntimeDirectory=$tool" "-p:PortableRootPath=$package" -o $app
 if ($LASTEXITCODE -ne 0) { throw 'Wallcraft 发布失败' }
@@ -29,6 +25,8 @@ foreach ($name in @('LICENSE', 'README.md', 'THIRD-PARTY-NOTICES.md')) {
     Copy-Item -LiteralPath (Join-Path $root $name) -Destination $package
 }
 Copy-Item -LiteralPath (Join-Path $root 'RePKG\repkg-ng\LICENSE') -Destination (Join-Path $package 'repkg-ng\LICENSE')
+New-Item -ItemType Directory -Force -Path (Join-Path $package 'licenses') | Out-Null
+Copy-Item -LiteralPath (Join-Path $root 'licenses\AssetStudio-LICENSE') -Destination (Join-Path $package 'licenses\AssetStudio-LICENSE')
 $privateFiles = Get-ChildItem -LiteralPath $package -Recurse -File | Where-Object { $_.Name -in @('settings.json', 'window.json', 'settings.json.tmp') }
 if ($privateFiles) { throw '发布目录意外包含个人配置，已中止打包' }
 $runtime = Get-Content (Join-Path $app 'Wallcraft.runtimeconfig.json') -Raw | ConvertFrom-Json

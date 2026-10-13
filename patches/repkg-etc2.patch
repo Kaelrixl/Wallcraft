@@ -1,0 +1,68 @@
+diff --git a/RePKG.Application/Texture/TextureDecoder.cs b/RePKG.Application/Texture/TextureDecoder.cs
+index d31cfe9..d77798e 100644
+--- a/RePKG.Application/Texture/TextureDecoder.cs
++++ b/RePKG.Application/Texture/TextureDecoder.cs
+@@ -303,7 +303,7 @@ namespace RePKG.Application.Texture
+                 int[] cr = { Expand5(r0), Expand5(r1) };
+                 int[] cg = { Expand5(g0), Expand5(g1) };
+                 int[] cb = { Expand5(b0), Expand5(b1) };
+-                uint[] tcw = { table2, table1 };
++                uint[] tcw = { table1, table2 };
+ 
+                 // 反交织修饰符位: modLsb=LSB, modMsb=MSB
+                 uint modLsb = SpreadBits((uint)((d >> 32) & 0xFFFF));
+@@ -345,7 +345,7 @@ namespace RePKG.Application.Texture
+                 int[] cr = { Expand4((int)((d >> 28) & 0xF)), Expand4((int)((d >> 24) & 0xF)) };
+                 int[] cg = { Expand4((int)((d >> 20) & 0xF)), Expand4((int)((d >> 16) & 0xF)) };
+                 int[] cb = { Expand4((int)((d >> 12) & 0xF)), Expand4((int)((d >> 8) & 0xF)) };
+-                uint[] tcw = { table2, table1 };
++                uint[] tcw = { table1, table2 };
+ 
+                 uint modLsb2 = SpreadBits((uint)((d >> 32) & 0xFFFF));
+                 uint modMsb2 = SpreadBits((uint)(d >> 48));
+@@ -442,30 +442,24 @@ namespace RePKG.Application.Texture
+         /// </summary>
+         private static void DecodeHMode(ulong d, byte[] dst, int di, int stride)
+         {
+-            int r0 = (int)(((d >> 27) & 0x8) | ((d >> 24) & 0x7));
+-            int g0 = (int)(((d >> 23) & 0xE) | ((d >> 20) & 0x1));
+-            int b0 = (int)(((d >> 19) & 0xF));
+-
+-            int r1 = (int)((d >> 15) & 0xF);
+-            int g1 = (int)((d >> 11) & 0xF);
+-            int b1 = (int)((d >> 7) & 0xF);
+-
+-            int cr0 = Expand4(r0);
+-            int cg0 = Expand4(g0);
+-            int cb0 = Expand4(b0);
+-            int cr1 = Expand4(r1);
+-            int cg1 = Expand4(g1);
+-            int cb1 = Expand4(b1);
++            int b0 = (int)(d >> 24) & 0xFF;
++            int b1 = (int)(d >> 16) & 0xFF;
++            int b2 = (int)(d >> 8) & 0xFF;
++            int b3 = (int)d & 0xFF;
++            int cr0 = ((b0 << 1) & 0xF0) | ((b0 >> 3) & 0xF);
++            int cg0 = ((b0 << 5) & 0xE0) | (b1 & 0x10);
++            cg0 |= cg0 >> 4;
++            int cb0 = (b1 & 8) | ((b1 << 1) & 6) | (b2 >> 7);
++            cb0 |= cb0 << 4;
++            int cr1 = ((b2 << 1) & 0xF0) | ((b2 >> 3) & 0xF);
++            int cg1 = ((b2 << 5) & 0xE0) | ((b3 >> 3) & 0x10);
++            cg1 |= cg1 >> 4;
++            int cb1 = ((b3 << 1) & 0xF0) | ((b3 >> 3) & 0xF);
+ 
+             uint c0val = (uint)((cr0 << 16) + (cg0 << 8) + cb0);
+             uint c1val = (uint)((cr1 << 16) + (cg1 << 8) + cb1);
+-            int codewordHi = (int)((d >> 2) & 0x3);
+-            int codewordLo;
+-            if (c0val >= c1val)
+-                codewordLo = 1;
+-            else
+-                codewordLo = 0;
+-            int codeword = (codewordHi << 1) | codewordLo;
++            int codeword = (b3 & 4) | ((b3 << 1) & 2);
++            if (c0val >= c1val) codeword++;
+             uint modVal = ThModTable[codeword];
+ 
+             int c0r = Clamp(cr0 + (int)modVal);

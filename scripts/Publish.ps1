@@ -1,29 +1,23 @@
 ﻿param(
-    [string]$Version = '0.1.2',
-    [string]$Dotnet = 'dotnet',
-    [switch]$LocalIcon
+    [string]$Version = '0.1.3',
+    [string]$Dotnet = 'dotnet'
 )
 $ErrorActionPreference = 'Stop'
 if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw '版本号必须为数字格式，例如 0.1.0' }
 $root = Split-Path $PSScriptRoot -Parent
 $run = Join-Path $root ('artifacts\build-' + [guid]::NewGuid().ToString('N'))
 $tool = Join-Path $run 'repkg'
-$suffix = if ($LocalIcon) { '-local' } else { '' }
-$package = Join-Path $run "Wallcraft-$Version-win-x64$suffix"
+$package = Join-Path $run "Wallcraft-$Version-win-x64"
 $app = Join-Path $package 'app'
 $toolProject = Join-Path $root 'RePKG\repkg-ng\RePKG\RePKG.csproj'
 if (-not (Test-Path $toolProject)) { throw '请先执行 git submodule update --init --recursive' }
 & $Dotnet publish $toolProject -c Release -f net8.0 -r win-x64 --self-contained true -o $tool
 if ($LASTEXITCODE -ne 0) { throw '解包工具发布失败' }
 Move-Item -LiteralPath (Join-Path $tool 'RePKG.exe') -Destination (Join-Path $tool 'repkg-win-x64.exe')
-$iconArguments = @()
-if ($LocalIcon) {
-    $localIconPath = Join-Path $root 'Assets\Monterey Light Mode.ico'
-    if (-not (Test-Path -LiteralPath $localIconPath)) { throw '本地图标不存在' }
-    $iconArguments = @("-p:ApplicationIcon=$localIconPath")
-}
-& $Dotnet publish (Join-Path $root 'Wallcraft.csproj') -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false "-p:Version=$Version" "-p:RePkgRuntimeDirectory=$tool" "-p:PortableRootPath=$package" @iconArguments -o $app
+$iconPath = Join-Path $root 'Assets\Wallcraft.ico'
+& $Dotnet publish (Join-Path $root 'Wallcraft.csproj') -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false "-p:BaseIntermediateOutputPath=$run\obj\" "-p:Version=$Version" "-p:RePkgRuntimeDirectory=$tool" "-p:PortableRootPath=$package" -o $app
 if ($LASTEXITCODE -ne 0) { throw 'Wallcraft 发布失败' }
+& (Join-Path $PSScriptRoot 'VerifyIcon.ps1') -ExecutablePath (Join-Path $package 'Wallcraft.exe') -IconPath $iconPath
 $toolSource = [IO.Path]::GetFullPath((Join-Path $app 'repkg-ng'))
 $toolDestination = [IO.Path]::GetFullPath((Join-Path $package 'repkg-ng'))
 $packagePrefix = [IO.Path]::GetFullPath($package).TrimEnd('\') + '\'
@@ -39,7 +33,7 @@ $privateFiles = Get-ChildItem -LiteralPath $package -Recurse -File | Where-Objec
 if ($privateFiles) { throw '发布目录意外包含个人配置，已中止打包' }
 $runtime = Get-Content (Join-Path $app 'Wallcraft.runtimeconfig.json') -Raw | ConvertFrom-Json
 if (-not $runtime.runtimeOptions.includedFrameworks) { throw '发布结果不是自包含版本' }
-$assets = Get-Content (Join-Path $root 'obj\project.assets.json') -Raw | ConvertFrom-Json
+$assets = Get-Content (Join-Path $run 'obj\project.assets.json') -Raw | ConvertFrom-Json
 $packageRoots = @($assets.packageFolders.PSObject.Properties.Name)
 foreach ($config in @((Join-Path $app 'Wallcraft.runtimeconfig.json'), (Join-Path $package 'repkg-ng\RePKG.runtimeconfig.json'))) {
     $configData = Get-Content $config -Raw | ConvertFrom-Json
@@ -72,7 +66,7 @@ $process.Dispose()
 Write-Output "便携入口校验通过：$diagnostics"
 # 根目录只保留一个入口，避免误启动 app 内的入口而把配置写错位置。
 Remove-Item -LiteralPath (Join-Path $app 'Wallcraft.exe')
-$zip = Join-Path $root "artifacts\Wallcraft-$Version-win-x64$suffix.zip"
+$zip = Join-Path $root "artifacts\Wallcraft-$Version-win-x64.zip"
 if (Test-Path -LiteralPath $zip) { throw "发布包已存在，未覆盖：$zip" }
 Compress-Archive -LiteralPath $package -DestinationPath $zip
 $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()

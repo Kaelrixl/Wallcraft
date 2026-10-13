@@ -10,4 +10,3 @@ artifacts/
 *.pdb
 RePKG/*
 !RePKG/repkg-ng/
-Assets/Monterey Light Mode.ico

@@ -44,7 +44,7 @@
 
 脚本从固定版本的 RePKG 源码构建解包工具，再生成目录式自包含程序（根目录放 Wallcraft.exe、repkg-ng、说明及许可文件；app 仅存放 .NET 运行库和主程序必需的托管文件），在 `artifacts` 下输出干净的便携目录、ZIP 和 SHA256 校验文件。首次构建需要联网还原 NuGet 包，不会把日常使用目录中的个人配置打入发布包。
 
-`scripts/NewIcon.ps1` 是原创图标生成源；图标已随源码提供，正常构建无需运行此脚本。
+`Assets/Wallcraft.png` 是公开版图标源图；`scripts/NewIcon.ps1` 将其转换为多尺寸 ICO。图标已随源码提供，正常构建无需运行此脚本。
 
 ## 限制
 
@@ -59,4 +59,3 @@ Wallcraft 源码与原创图标采用 [MIT 许可证](LICENSE)。第三方组件
 
 本项目与 Wallpaper Engine、Steam 及 Valve 无隶属关系，不附带壁纸素材。壁纸素材的权利归原作者所有，软件许可证不授予素材再分发权。
 
-本地专用图标可用 `-LocalIcon` 构建，该开关读取本机 Assets/Monterey Light Mode.ico，并生成带 `-local` 后缀的包；图标未纳入 Git，公开发布请勿使用该开关或上传本地包。

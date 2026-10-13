@@ -10,7 +10,7 @@ internal static class Program
         // 打包校验专用入口：加载运行库，但不创建窗口或读写用户配置。
         if (args.Length == 1 && args[0] == "--verify-package")
         {
-            var tool = Path.Combine(AppContext.BaseDirectory, "repkg-ng", "repkg-win-x64.exe");
+            var tool = Path.Combine(Program.PortableDirectory, "repkg-ng", "repkg-win-x64.exe");
             Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new
             {
                 Runtime = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory(),

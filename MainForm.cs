@@ -1050,7 +1050,7 @@ public sealed class MainForm : Form
 
     private async Task RunToolAsync(params string[] arguments)
     {
-        var tool = Path.Combine(AppContext.BaseDirectory, "repkg-ng", "repkg-win-x64.exe");
+        var tool = Path.Combine(Program.PortableDirectory, "repkg-ng", "repkg-win-x64.exe");
         if (!File.Exists(tool)) throw new FileNotFoundException("找不到解包工具", tool);
         var start = new ProcessStartInfo(tool)
         {

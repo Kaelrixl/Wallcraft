@@ -7,7 +7,7 @@
 从 [Releases](https://github.com/Kaelrixl/Wallcraft/releases) 下载 `Wallcraft-版本号-win-x64.zip`，完整解压到可写目录，运行 `Wallcraft.exe`。
 
 - 适用于 Windows 10 / 11 x64，发布包包含 .NET 桌面运行时，无需另外安装 .NET、Python 或开发工具。
-- 请保留整个文件夹，包括 `app` 子目录，不要只复制 EXE。
+- 请保留整个文件夹，包括 `app` 和 `repkg-ng` 子目录，不要只复制 EXE。
 - “已安装”页从本机 Steam / Wallpaper Engine 目录发现壁纸；直接处理 PKG / MPKG 文件可以自行选择输入和输出位置。
 - 解包后的实际播放需要 Wallpaper Engine，本程序不包含它。
 
@@ -40,9 +40,9 @@
  powershell -ExecutionPolicy Bypass -File scripts/Publish.ps1
 ```
 
-已克隆但未下载子模块时执行 `git submodule update --init --recursive`。可通过 `-Dotnet` 指定 dotnet.exe 路径，通过 `-Version 0.1.1` 指定版本。
+已克隆但未下载子模块时执行 `git submodule update --init --recursive`。可通过 `-Dotnet` 指定 dotnet.exe 路径，通过 `-Version 0.1.2` 指定版本。
 
-脚本从固定版本的 RePKG 源码构建解包工具，再生成目录式自包含程序（根目录只有 Wallcraft.exe 和 app，依赖及许可文件集中在 app 内），在 `artifacts` 下输出干净的便携目录、ZIP 和 SHA256 校验文件。首次构建需要联网还原 NuGet 包，不会把日常使用目录中的个人配置打入发布包。
+脚本从固定版本的 RePKG 源码构建解包工具，再生成目录式自包含程序（根目录放 Wallcraft.exe、repkg-ng、说明及许可文件；app 仅存放 .NET 运行库和主程序必需的托管文件），在 `artifacts` 下输出干净的便携目录、ZIP 和 SHA256 校验文件。首次构建需要联网还原 NuGet 包，不会把日常使用目录中的个人配置打入发布包。
 
 `scripts/NewIcon.ps1` 是原创图标生成源；图标已随源码提供，正常构建无需运行此脚本。
 

@@ -449,7 +449,7 @@ public sealed class MainForm : Form
 
     private sealed record PathSettings(string? InstalledOutput, string? ProjectOutput, string? MediaOutput);
 
-    private static string PathSettingsPath => Path.Combine(AppContext.BaseDirectory, "settings.json");
+    private static string PathSettingsPath => Path.Combine(Program.PortableDirectory, "settings.json");
 
     private void RestorePathSettings()
     {
@@ -484,7 +484,7 @@ public sealed class MainForm : Form
         }
     }
 
-    private static string WindowPositionPath => Path.Combine(AppContext.BaseDirectory, "window.json");
+    private static string WindowPositionPath => Path.Combine(Program.PortableDirectory, "window.json");
 
     private void RestoreWindowPosition()
     {

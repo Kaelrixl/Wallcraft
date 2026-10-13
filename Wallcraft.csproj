@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
-    <ApplicationIcon>Assets\Wallcraft.ico</ApplicationIcon>
+    <ApplicationIcon Condition="'$(ApplicationIcon)' == ''">Assets\Wallcraft.ico</ApplicationIcon>
     <RePkgRuntimeDirectory Condition="'$(RePkgRuntimeDirectory)' == ''">RePKG\repkg-ng\release</RePkgRuntimeDirectory>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <OutputPath Condition="'$(Configuration)' == 'Release'">Release\</OutputPath>
@@ -21,4 +21,11 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
+  <Target Name="CreatePortableEntryPoint" AfterTargets="Publish" Condition="'$(PortableRootPath)' != ''">
+    <CreateAppHost AppHostSourcePath="$(AppHostSourcePath)"
+                   AppHostDestinationPath="$(PortableRootPath)\Wallcraft.exe"
+                   AppBinaryName="app/Wallcraft.dll"
+                   IntermediateAssembly="@(IntermediateAssembly->'%(FullPath)')"
+                   WindowsGraphicalUserInterface="true" />
+  </Target>
 </Project>

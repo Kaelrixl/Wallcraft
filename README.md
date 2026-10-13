@@ -7,7 +7,7 @@
 从 [Releases](https://github.com/Kaelrixl/Wallcraft/releases) 下载 `Wallcraft-版本号-win-x64.zip`，完整解压到可写目录，运行 `Wallcraft.exe`。
 
 - 适用于 Windows 10 / 11 x64，发布包包含 .NET 桌面运行时，无需另外安装 .NET、Python 或开发工具。
-- 请保留整个文件夹，包括 `repkg-ng` 子目录，不要只复制 EXE。
+- 请保留整个文件夹，包括 `app` 子目录，不要只复制 EXE。
 - “已安装”页从本机 Steam / Wallpaper Engine 目录发现壁纸；直接处理 PKG / MPKG 文件可以自行选择输入和输出位置。
 - 解包后的实际播放需要 Wallpaper Engine，本程序不包含它。
 
@@ -40,9 +40,9 @@
  powershell -ExecutionPolicy Bypass -File scripts/Publish.ps1
 ```
 
-已克隆但未下载子模块时执行 `git submodule update --init --recursive`。可通过 `-Dotnet` 指定 dotnet.exe 路径，通过 `-Version 0.1.0` 指定版本。
+已克隆但未下载子模块时执行 `git submodule update --init --recursive`。可通过 `-Dotnet` 指定 dotnet.exe 路径，通过 `-Version 0.1.1` 指定版本。
 
-脚本从固定版本的 RePKG 源码构建解包工具，再生成目录式自包含程序，在 `artifacts` 下输出干净的便携目录、ZIP 和 SHA256 校验文件。首次构建需要联网还原 NuGet 包，不会把日常使用目录中的个人配置打入发布包。
+脚本从固定版本的 RePKG 源码构建解包工具，再生成目录式自包含程序（根目录只有 Wallcraft.exe 和 app，依赖及许可文件集中在 app 内），在 `artifacts` 下输出干净的便携目录、ZIP 和 SHA256 校验文件。首次构建需要联网还原 NuGet 包，不会把日常使用目录中的个人配置打入发布包。
 
 `scripts/NewIcon.ps1` 是原创图标生成源；图标已随源码提供，正常构建无需运行此脚本。
 
@@ -58,3 +58,5 @@
 Wallcraft 源码与原创图标采用 [MIT 许可证](LICENSE)。第三方组件保留各自许可证，详见 [第三方说明](THIRD-PARTY-NOTICES.md)。
 
 本项目与 Wallpaper Engine、Steam 及 Valve 无隶属关系，不附带壁纸素材。壁纸素材的权利归原作者所有，软件许可证不授予素材再分发权。
+
+本地专用图标可用 `-LocalIcon` 构建，该开关读取本机 Assets/Monterey Light Mode.ico，并生成带 `-local` 后缀的包；图标未纳入 Git，公开发布请勿使用该开关或上传本地包。
